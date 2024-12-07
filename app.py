@@ -18,9 +18,9 @@ def reset_campos():
     st.session_state.prejudiciais_1 = 0
     st.session_state.prejudiciais_2 = 0
     st.session_state.prejudiciais_3 = 0
-    st.session_state.merito_1 = 1
-    st.session_state.merito_2 = 1
-    st.session_state.merito_3 = 1
+    st.session_state.merito_1 = 0
+    st.session_state.merito_2 = 0
+    st.session_state.merito_3 = 0
 
 # Inicializar os valores na primeira execução
 if "numero_processo" not in st.session_state:
@@ -42,15 +42,15 @@ st.markdown("### Tópicos por Recurso")
 col1, col2, col3 = st.columns(3)
 preliminares_1 = col1.selectbox("Preliminares R1:", range(0, 7), key="preliminares_1")
 prejudiciais_1 = col2.selectbox("Prejudiciais R1:", range(0, 7), key="prejudiciais_1")
-merito_1 = col3.selectbox("Tópicos Mérito R1:", range(1, 36), key="merito_1")
+merito_1 = col3.selectbox("Tópicos Mérito R1:", range(0, 36), key="merito_1")
 
 preliminares_2 = col1.selectbox("Preliminares R2:", range(0, 7), key="preliminares_2")
 prejudiciais_2 = col2.selectbox("Prejudiciais R2:", range(0, 7), key="prejudiciais_2")
-merito_2 = col3.selectbox("Tópicos Mérito R2:", range(1, 36), key="merito_2")
+merito_2 = col3.selectbox("Tópicos Mérito R2:", range(0, 36), key="merito_2")
 
 preliminares_3 = col1.selectbox("Preliminares R3:", range(0, 7), key="preliminares_3")
 prejudiciais_3 = col2.selectbox("Prejudiciais R3:", range(0, 7), key="prejudiciais_3")
-merito_3 = col3.selectbox("Tópicos Mérito R3:", range(1, 36), key="merito_3")
+merito_3 = col3.selectbox("Tópicos Mérito R3:", range(0, 36), key="merito_3")
 
 # Botão para adicionar os dados do processo
 if st.button("Adicionar Processo"):
