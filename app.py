@@ -105,8 +105,8 @@ def gerar_relatorio():
     ws_processos = wb.active
     ws_processos.title = "Todos os Processos"
 
-    # Preencher a aba principal com todos os processos
-    ws_processos.append(["Número do Processo", "Classe 1", "Tópicos Recurso 1", "Classe 2", "Tópicos Recurso 2", "Classe 3", "Tópicos Recurso 3", "Total de Tópicos"])
+    # Preencher a aba principal com todos os processos e novos títulos
+    ws_processos.append(["Número do Processo", "Recurso 1", "Tópicos R1", "Recurso 2", "Tópicos R2", "Recurso 3", "Tópicos R3", "Total de Tópicos"])
     for processo in st.session_state["processos"]:
         ws_processos.append([
             processo.get("Número do Processo", ""),
@@ -199,4 +199,5 @@ if st.session_state.get("relatorio_gerado"):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         key="download_button"
     )
+
 
