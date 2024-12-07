@@ -90,10 +90,10 @@ def gerar_relatorio():
 
     # Distribuição entre votistas
     votistas = {v: [] for v in votistas_selecionados}
-    processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x["Total de Tópicos"], reverse=True)
+    processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x.get("Total de Tópicos", 0), reverse=True)
 
     for processo in processos_ordenados:
-        votista = min(votistas, key=lambda v: sum(p["Total de Tópicos"] for p in votistas[v]))
+        votista = min(votistas, key=lambda v: sum(p.get("Total de Tópicos", 0) for p in votistas[v]))
         votistas[votista].append(processo)
 
     output = BytesIO()
@@ -109,14 +109,14 @@ def gerar_relatorio():
         ws.append(["Número do Processo", "Classe 1", "Tópicos Recurso 1", "Classe 2", "Tópicos Recurso 2", "Classe 3", "Tópicos Recurso 3", "Total de Tópicos"])
         for processo in processos:
             ws.append([
-                processo["Número do Processo"],
-                processo["Classe 1"], processo["Tópicos Recurso 1"],
-                processo["Classe 2"], processo["Tópicos Recurso 2"],
-                processo["Classe 3"], processo["Tópicos Recurso 3"],
-                processo["Total de Tópicos"]
+                processo.get("Número do Processo", ""),
+                processo.get("Classe 1", ""), processo.get("Tópicos Recurso 1", 0),
+                processo.get("Classe 2", ""), processo.get("Tópicos Recurso 2", 0),
+                processo.get("Classe 3", ""), processo.get("Tópicos Recurso 3", 0),
+                processo.get("Total de Tópicos", 0)
             ])
         total_processos = len(processos)
-        total_topicos = sum(p["Total de Tópicos"] for p in processos)
+        total_topicos = sum(p.get("Total de Tópicos", 0) for p in processos)
         ws.append([])
         ws.append(["Total de Processos", total_processos])
         ws.append(["Total de Tópicos", total_topicos])
@@ -177,6 +177,11 @@ if st.session_state["processos"]:
 st.subheader("Selecione os Votistas")
 for votista in VOTISTAS:
     st.checkbox(votista, key=f"votista_{votista}")
+
+# Botão de geração do relatório
+if st.session_state["processos"]:
+    st.button("Gerar Relatório", on_click=gerar_relatorio)
+
 
 # Botão de geração do relatório
 if st.session_state["processos"]:
