@@ -48,11 +48,11 @@ def adicionar_processo():
         total_topicos = calcular_total_topicos()
         st.session_state["processos"].append({
             "Número do Processo": st.session_state.numero_processo,
-            "Classe 1": st.session_state.tipo_recurso_1 if st.session_state.tipo_recurso_1 != "Nenhum" else "",
+            "Recurso 1": st.session_state.tipo_recurso_1 if st.session_state.tipo_recurso_1 != "Nenhum" else "",
             "Tópicos Recurso 1": st.session_state.preliminares_1 + st.session_state.prejudiciais_1 + st.session_state.merito_1,
-            "Classe 2": st.session_state.tipo_recurso_2 if st.session_state.tipo_recurso_2 != "Nenhum" else "",
+            "Recurso 2": st.session_state.tipo_recurso_2 if st.session_state.tipo_recurso_2 != "Nenhum" else "",
             "Tópicos Recurso 2": st.session_state.preliminares_2 + st.session_state.prejudiciais_2 + st.session_state.merito_2,
-            "Classe 3": st.session_state.tipo_recurso_3 if st.session_state.tipo_recurso_3 != "Nenhum" else "",
+            "Recurso 3": st.session_state.tipo_recurso_3 if st.session_state.tipo_recurso_3 != "Nenhum" else "",
             "Tópicos Recurso 3": st.session_state.preliminares_3 + st.session_state.prejudiciais_3 + st.session_state.merito_3,
             "Total de Tópicos": total_topicos
         })
@@ -110,9 +110,9 @@ def gerar_relatorio():
     for processo in st.session_state["processos"]:
         ws_processos.append([
             processo.get("Número do Processo", ""),
-            processo.get("Classe 1", ""), processo.get("Tópicos Recurso 1", 0),
-            processo.get("Classe 2", ""), processo.get("Tópicos Recurso 2", 0),
-            processo.get("Classe 3", ""), processo.get("Tópicos Recurso 3", 0),
+            processo.get("Recurso 1", ""), processo.get("Tópicos Recurso 1", 0),
+            processo.get("Recurso 2", ""), processo.get("Tópicos Recurso 2", 0),
+            processo.get("Recurso 3", ""), processo.get("Tópicos Recurso 3", 0),
             processo.get("Total de Tópicos", 0)
         ])
     ajustar_largura_colunas(ws_processos)
@@ -120,13 +120,13 @@ def gerar_relatorio():
     # Criar aba para cada votista
     for votista, processos in votistas.items():
         ws = wb.create_sheet(title=votista)
-        ws.append(["Número do Processo", "Classe 1", "Tópicos Recurso 1", "Classe 2", "Tópicos Recurso 2", "Classe 3", "Tópicos Recurso 3", "Total de Tópicos"])
+        ws.append(["Número do Processo", "Recurso 1", "Tópicos Recurso 1", "Recurso 2", "Tópicos Recurso 2", "Recurso 3", "Tópicos Recurso 3", "Total de Tópicos"])
         for processo in processos:
             ws.append([
                 processo.get("Número do Processo", ""),
-                processo.get("Classe 1", ""), processo.get("Tópicos Recurso 1", 0),
-                processo.get("Classe 2", ""), processo.get("Tópicos Recurso 2", 0),
-                processo.get("Classe 3", ""), processo.get("Tópicos Recurso 3", 0),
+                processo.get("Recurso 1", ""), processo.get("Tópicos Recurso 1", 0),
+                processo.get("Recurso 2", ""), processo.get("Tópicos Recurso 2", 0),
+                processo.get("Recurso 3", ""), processo.get("Tópicos Recurso 3", 0),
                 processo.get("Total de Tópicos", 0)
             ])
         total_processos = len(processos)
@@ -199,5 +199,3 @@ if st.session_state.get("relatorio_gerado"):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         key="download_button"
     )
-
-
