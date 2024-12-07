@@ -52,7 +52,7 @@ def adicionar_processo():
             "Tópicos Recurso 2": st.session_state.preliminares_2 + st.session_state.prejudiciais_2 + st.session_state.merito_2,
             "Classe 3": st.session_state.tipo_recurso_3 if st.session_state.tipo_recurso_3 != "Nenhum" else "",
             "Tópicos Recurso 3": st.session_state.preliminares_3 + st.session_state.prejudiciais_3 + st.session_state.merito_3,
-            "Total de Tópicos do Processo": total_topicos
+            "Total de Tópicos": total_topicos
         })
         st.success(f"Processo {st.session_state.numero_processo} adicionado com sucesso!")
         reset_campos()
@@ -80,15 +80,6 @@ def ajustar_largura_colunas(worksheet):
 
 # Função para gerar relatório
 def gerar_relatorio():
-    # Certificar que todos os processos têm a coluna "Total de Tópicos do Processo"
-    for processo in st.session_state["processos"]:
-        if "Total de Tópicos do Processo" not in processo:
-            processo["Total de Tópicos do Processo"] = (
-                processo.get("Tópicos Recurso 1", 0) +
-                processo.get("Tópicos Recurso 2", 0) +
-                processo.get("Tópicos Recurso 3", 0)
-            )
-
     df_processos = pd.DataFrame(st.session_state["processos"])
 
     # Obter os votistas marcados
@@ -99,10 +90,10 @@ def gerar_relatorio():
 
     # Distribuição entre votistas
     votistas = {v: [] for v in votistas_selecionados}
-    processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x["Total de Tópicos do Processo"], reverse=True)
+    processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x["Total de Tópicos"], reverse=True)
 
     for processo in processos_ordenados:
-        votista = min(votistas, key=lambda v: sum(p["Total de Tópicos do Processo"] for p in votistas[v]))
+        votista = min(votistas, key=lambda v: sum(p["Total de Tópicos"] for p in votistas[v]))
         votistas[votista].append(processo)
 
     output = BytesIO()
@@ -112,33 +103,24 @@ def gerar_relatorio():
     ws_processos = wb.active
     ws_processos.title = "Processos"
 
-    # Renomear colunas do DataFrame
-    df_processos.rename(columns={
-        "Número do Processo": "Número do Processo",
-        "Classe 1": "Classe",
-        "Tópicos Recurso 1": "Tópicos Recurso 1",
-        "Classe 2": "Classe",
-        "Tópicos Recurso 2": "Tópicos Recurso 2",
-        "Classe 3": "Classe",
-        "Tópicos Recurso 3": "Tópicos Recurso 3",
-        "Total de Tópicos do Processo": "Total de Tópicos do Processo"
-    }, inplace=True)
-
-    # Escrever processos no Excel
-    for row in dataframe_to_rows(df_processos, index=False, header=True):
-        ws_processos.append(row)
-
-    # Ajustar largura das colunas
-    ajustar_largura_colunas(ws_processos)
-
-    # Criar aba para distribuição dos votistas
-    ws_votistas = wb.create_sheet(title="Distribuição por Votista")
-    ws_votistas.append(["Votista", "Número do Processo", "Total de Tópicos"])
+    # Criar aba para cada votista
     for votista, processos in votistas.items():
+        ws = wb.create_sheet(title=votista)
+        ws.append(["Número do Processo", "Classe 1", "Tópicos Recurso 1", "Classe 2", "Tópicos Recurso 2", "Classe 3", "Tópicos Recurso 3", "Total de Tópicos"])
         for processo in processos:
-            ws_votistas.append([votista, processo["Número do Processo"], processo["Total de Tópicos do Processo"]])
-
-    ajustar_largura_colunas(ws_votistas)
+            ws.append([
+                processo["Número do Processo"],
+                processo["Classe 1"], processo["Tópicos Recurso 1"],
+                processo["Classe 2"], processo["Tópicos Recurso 2"],
+                processo["Classe 3"], processo["Tópicos Recurso 3"],
+                processo["Total de Tópicos"]
+            ])
+        total_processos = len(processos)
+        total_topicos = sum(p["Total de Tópicos"] for p in processos)
+        ws.append([])
+        ws.append(["Total de Processos", total_processos])
+        ws.append(["Total de Tópicos", total_topicos])
+        ajustar_largura_colunas(ws)
 
     # Salvar o Excel
     wb.save(output)
@@ -199,3 +181,4 @@ for votista in VOTISTAS:
 # Botão de geração do relatório
 if st.session_state["processos"]:
     st.button("Gerar Relatório", on_click=gerar_relatorio)
+
