@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 from openpyxl import Workbook
-from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Alignment
 
 # Inicializando os dados
@@ -49,11 +48,11 @@ def adicionar_processo():
         st.session_state["processos"].append({
             "Número do Processo": st.session_state.numero_processo,
             "Recurso 1": st.session_state.tipo_recurso_1 if st.session_state.tipo_recurso_1 != "Nenhum" else "",
-            "Tópicos Recurso 1": st.session_state.preliminares_1 + st.session_state.prejudiciais_1 + st.session_state.merito_1,
+            "Tópicos R1": st.session_state.preliminares_1 + st.session_state.prejudiciais_1 + st.session_state.merito_1,
             "Recurso 2": st.session_state.tipo_recurso_2 if st.session_state.tipo_recurso_2 != "Nenhum" else "",
-            "Tópicos Recurso 2": st.session_state.preliminares_2 + st.session_state.prejudiciais_2 + st.session_state.merito_2,
+            "Tópicos R2": st.session_state.preliminares_2 + st.session_state.prejudiciais_2 + st.session_state.merito_2,
             "Recurso 3": st.session_state.tipo_recurso_3 if st.session_state.tipo_recurso_3 != "Nenhum" else "",
-            "Tópicos Recurso 3": st.session_state.preliminares_3 + st.session_state.prejudiciais_3 + st.session_state.merito_3,
+            "Tópicos R3": st.session_state.preliminares_3 + st.session_state.prejudiciais_3 + st.session_state.merito_3,
             "Total de Tópicos": total_topicos
         })
         st.success(f"Processo {st.session_state.numero_processo} adicionado com sucesso!")
@@ -105,14 +104,14 @@ def gerar_relatorio():
     ws_processos = wb.active
     ws_processos.title = "Todos os Processos"
 
-    # Preencher a aba principal com todos os processos e novos títulos
+    # Preencher a aba principal com todos os processos
     ws_processos.append(["Número do Processo", "Recurso 1", "Tópicos R1", "Recurso 2", "Tópicos R2", "Recurso 3", "Tópicos R3", "Total de Tópicos"])
     for processo in st.session_state["processos"]:
         ws_processos.append([
             processo.get("Número do Processo", ""),
-            processo.get("Recurso 1", ""), processo.get("Tópicos Recurso 1", 0),
-            processo.get("Recurso 2", ""), processo.get("Tópicos Recurso 2", 0),
-            processo.get("Recurso 3", ""), processo.get("Tópicos Recurso 3", 0),
+            processo.get("Recurso 1", ""), processo.get("Tópicos R1", 0),
+            processo.get("Recurso 2", ""), processo.get("Tópicos R2", 0),
+            processo.get("Recurso 3", ""), processo.get("Tópicos R3", 0),
             processo.get("Total de Tópicos", 0)
         ])
     ajustar_largura_colunas(ws_processos)
@@ -120,13 +119,13 @@ def gerar_relatorio():
     # Criar aba para cada votista
     for votista, processos in votistas.items():
         ws = wb.create_sheet(title=votista)
-        ws.append(["Número do Processo", "Recurso 1", "Tópicos Recurso 1", "Recurso 2", "Tópicos Recurso 2", "Recurso 3", "Tópicos Recurso 3", "Total de Tópicos"])
+        ws.append(["Número do Processo", "Recurso 1", "Tópicos R1", "Recurso 2", "Tópicos R2", "Recurso 3", "Tópicos R3", "Total de Tópicos"])
         for processo in processos:
             ws.append([
                 processo.get("Número do Processo", ""),
-                processo.get("Recurso 1", ""), processo.get("Tópicos Recurso 1", 0),
-                processo.get("Recurso 2", ""), processo.get("Tópicos Recurso 2", 0),
-                processo.get("Recurso 3", ""), processo.get("Tópicos Recurso 3", 0),
+                processo.get("Recurso 1", ""), processo.get("Tópicos R1", 0),
+                processo.get("Recurso 2", ""), processo.get("Tópicos R2", 0),
+                processo.get("Recurso 3", ""), processo.get("Tópicos R3", 0),
                 processo.get("Total de Tópicos", 0)
             ])
         total_processos = len(processos)
