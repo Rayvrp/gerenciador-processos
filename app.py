@@ -26,8 +26,73 @@ def reset_campos():
 if "numero_processo" not in st.session_state:
     reset_campos()
 
+# Função para adicionar processo
+def adicionar_processo():
+    if st.session_state.numero_processo:
+        total_topicos = (
+            st.session_state.preliminares_1 + st.session_state.prejudiciais_1 + st.session_state.merito_1 +
+            st.session_state.preliminares_2 + st.session_state.prejudiciais_2 + st.session_state.merito_2 +
+            st.session_state.preliminares_3 + st.session_state.prejudiciais_3 + st.session_state.merito_3
+        )
+        st.session_state["processos"].append({
+            "Número do Processo": st.session_state.numero_processo,
+            "Recurso 1": st.session_state.tipo_recurso_1 if st.session_state.tipo_recurso_1 != "Nenhum" else "",
+            "Tópicos R1": st.session_state.preliminares_1 + st.session_state.prejudiciais_1 + st.session_state.merito_1,
+            "Recurso 2": st.session_state.tipo_recurso_2 if st.session_state.tipo_recurso_2 != "Nenhum" else "",
+            "Tópicos R2": st.session_state.preliminares_2 + st.session_state.prejudiciais_2 + st.session_state.merito_2,
+            "Recurso 3": st.session_state.tipo_recurso_3 if st.session_state.tipo_recurso_3 != "Nenhum" else "",
+            "Tópicos R3": st.session_state.preliminares_3 + st.session_state.prejudiciais_3 + st.session_state.merito_3,
+            "Total de Tópicos": total_topicos
+        })
+        st.success(f"Processo {st.session_state.numero_processo} adicionado com sucesso!")
+        reset_campos()
+    else:
+        st.error("Por favor, insira o número do processo.")
+
+# Função para excluir processo
+def excluir_processo(index):
+    if 0 <= index < len(st.session_state["processos"]):
+        del st.session_state["processos"][index]
+        st.success("Processo excluído com sucesso!")
+
+# Função para gerar relatório
+def gerar_relatorio():
+    # Ordenar processos por tópicos
+    processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x["Total de Tópicos"], reverse=True)
+    num_votistas = st.session_state["num_votistas"]
+    votistas = {f"Votista {i+1}": [] for i in range(num_votistas)}
+
+    # Distribuição equitativa
+    for processo in processos_ordenados:
+        votista = min(votistas, key=lambda v: sum(p["Total de Tópicos"] for p in votistas[v]))
+        votistas[votista].append(processo)
+
+    # Exibir resumo da distribuição
+    st.subheader("Resumo da Distribuição")
+    for votista, processos_votista in votistas.items():
+        total_topicos = sum(p["Total de Tópicos"] for p in processos_votista)
+        st.write(f"{votista}: {len(processos_votista)} processos, {total_topicos} tópicos.")
+
+    # Gerar relatório em Excel
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine="openpyxl")
+    pd.DataFrame(st.session_state["processos"]).to_excel(writer, index=False, sheet_name="Processos")
+    for votista, processos_votista in votistas.items():
+        pd.DataFrame(processos_votista).to_excel(writer, index=False, sheet_name=votista)
+    writer.close()
+    output.seek(0)
+
+    # Botão para download do relatório
+    st.download_button(
+        label="Baixar Relatório",
+        data=output,
+        file_name="relatorio_processos.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    st.success("Relatório gerado com sucesso!")
+
 # Título do Aplicativo
-st.title("Gerenciador de Processos e Recursos")
+st.title("Distribuição semanal de processos")
 
 # Formulário para adicionar dados do processo
 st.subheader("Adicionar Dados do Processo")
@@ -52,70 +117,19 @@ preliminares_3 = col1.selectbox("Preliminares R3:", range(0, 7), key="preliminar
 prejudiciais_3 = col2.selectbox("Prejudiciais R3:", range(0, 7), key="prejudiciais_3")
 merito_3 = col3.selectbox("Tópicos Mérito R3:", range(0, 36), key="merito_3")
 
-# Função para adicionar processo
-def adicionar_processo():
-    if st.session_state.numero_processo:
-        total_topicos = (
-            st.session_state.preliminares_1 + st.session_state.prejudiciais_1 + st.session_state.merito_1 +
-            st.session_state.preliminares_2 + st.session_state.prejudiciais_2 + st.session_state.merito_2 +
-            st.session_state.preliminares_3 + st.session_state.prejudiciais_3 + st.session_state.merito_3
-        )
-        st.session_state["processos"].append({
-            "Número do Processo": st.session_state.numero_processo,
-            "Recurso 1": st.session_state.tipo_recurso_1 if st.session_state.tipo_recurso_1 != "Nenhum" else "",
-            "Tópicos R1": st.session_state.preliminares_1 + st.session_state.prejudiciais_1 + st.session_state.merito_1,
-            "Recurso 2": st.session_state.tipo_recurso_2 if st.session_state.tipo_recurso_2 != "Nenhum" else "",
-            "Tópicos R2": st.session_state.preliminares_2 + st.session_state.prejudiciais_2 + st.session_state.merito_2,
-            "Recurso 3": st.session_state.tipo_recurso_3 if st.session_state.tipo_recurso_3 != "Nenhum" else "",
-            "Tópicos R3": st.session_state.preliminares_3 + st.session_state.prejudiciais_3 + st.session_state.merito_3,
-            "Total de Tópicos": total_topicos
-        })
-        st.success(f"Processo {st.session_state.numero_processo} adicionado com sucesso!")
-        reset_campos()
-    else:
-        st.error("Por favor, insira o número do processo.")
-
 # Botão para adicionar os dados do processo
 st.button("Adicionar Processo", on_click=adicionar_processo)
 
 # Exibir processos adicionados
 if st.session_state["processos"]:
     st.subheader("Processos Adicionados")
-    df = pd.DataFrame(st.session_state["processos"])
-    st.dataframe(df)
+    for i, processo in enumerate(st.session_state["processos"]):
+        st.write(processo)
+        st.button(f"Excluir Processo {processo['Número do Processo']}", key=f"excluir_{i}", on_click=excluir_processo, args=(i,))
 
     # Número de votistas
-    num_votistas = st.number_input("Número de Votistas:", min_value=1, step=1, key="num_votistas")
+    st.number_input("Número de Votistas:", min_value=1, step=1, key="num_votistas")
 
     # Botão para gerar relatório
-    def gerar_relatorio():
-        # Ordenar processos por tópicos
-        processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x["Total de Tópicos"], reverse=True)
-        votistas = {f"Votista {i+1}": [] for i in range(num_votistas)}
-
-        # Distribuição equitativa
-        for processo in processos_ordenados:
-            votista = min(votistas, key=lambda v: sum(p["Total de Tópicos"] for p in votistas[v]))
-            votistas[votista].append(processo)
-
-        # Gerar relatório em Excel
-        output = BytesIO()
-        writer = pd.ExcelWriter(output, engine="openpyxl")
-        pd.DataFrame(st.session_state["processos"]).to_excel(writer, index=False, sheet_name="Processos")
-        for votista, processos_votista in votistas.items():
-            pd.DataFrame(processos_votista).to_excel(writer, index=False, sheet_name=votista)
-        writer.close()
-        output.seek(0)
-
-        # Botão para download do relatório
-        st.download_button(
-            label="Baixar Relatório",
-            data=output,
-            file_name="relatorio_processos.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-        st.success("Relatório gerado com sucesso!")
-
     st.button("Gerar Relatório", on_click=gerar_relatorio)
-
 
