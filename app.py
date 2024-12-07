@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from io import BytesIO
 
 # Inicializando os dados
 if "processos" not in st.session_state:
@@ -48,11 +49,46 @@ def adicionar_processo():
     else:
         st.error("Por favor, insira o número do processo.")
 
-# Função para excluir processo
-def excluir_processo(index):
-    if 0 <= index < len(st.session_state["processos"]):
-        del st.session_state["processos"][index]
-        st.success("Processo excluído com sucesso!")
+# Função para desfazer inclusão
+def desfazer_inclusao():
+    if st.session_state["processos"]:
+        st.session_state["processos"].pop()
+        st.success("Último processo removido com sucesso!")
+
+# Função para gerar relatório
+def gerar_relatorio():
+    # Ordenar processos por tópicos
+    processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x["Total de Tópicos"], reverse=True)
+    num_votistas = st.session_state["num_votistas"]
+    votistas = {f"Votista {i+1}": [] for i in range(num_votistas)}
+
+    # Distribuição equitativa
+    for processo in processos_ordenados:
+        votista = min(votistas, key=lambda v: sum(p["Total de Tópicos"] for p in votistas[v]))
+        votistas[votista].append(processo)
+
+    # Exibir resumo da distribuição
+    st.subheader("Resumo da Distribuição")
+    for votista, processos_votista in votistas.items():
+        total_topicos = sum(p["Total de Tópicos"] for p in processos_votista)
+        st.write(f"{votista}: {len(processos_votista)} processos, {total_topicos} tópicos.")
+
+    # Gerar relatório em Excel
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine="openpyxl")
+    pd.DataFrame(st.session_state["processos"]).to_excel(writer, index=False, sheet_name="Processos")
+    for votista, processos_votista in votistas.items():
+        pd.DataFrame(processos_votista).to_excel(writer, index=False, sheet_name=votista)
+    writer.close()
+    output.seek(0)
+
+    # Botão para download do relatório
+    st.download_button(
+        label="Baixar Relatório",
+        data=output,
+        file_name="relatorio_processos.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 # Título do Aplicativo
 st.title("Distribuição semanal de processos")
@@ -83,27 +119,18 @@ merito_3 = col3.selectbox("Tópicos Mérito R3:", range(0, 36), key="merito_3")
 # Botão para adicionar os dados do processo
 st.button("Adicionar Processo", on_click=adicionar_processo)
 
-# Exibir processos adicionados com botões de exclusão
+# Botão para desfazer inclusão
+if st.session_state["processos"]:
+    st.button("Desfazer Inclusão", on_click=desfazer_inclusao)
+
+# Exibir processos adicionados
 if st.session_state["processos"]:
     st.subheader("Processos Adicionados")
-    for i, processo in enumerate(st.session_state["processos"]):
-        st.markdown("---")
-        cols = st.columns(len(processo) + 1)
-        for j, (key, value) in enumerate(processo.items()):
-            cols[j].write(f"**{key}:** {value}")
-        # Adicionar botão de exclusão na última coluna
-        if cols[-1].button("Excluir", key=f"excluir_{i}"):
-            excluir_processo(i)
+    df = pd.DataFrame(st.session_state["processos"])
+    st.dataframe(df)
 
-# Número de votistas e geração de relatório
+# Número de votistas e botão de geração de relatório
 if st.session_state["processos"]:
-    st.subheader("Distribuição dos Processos")
     st.number_input("Número de Votistas:", min_value=1, step=1, key="num_votistas")
-
-    def gerar_relatorio():
-        st.write("Relatório gerado!")  # Lógica completa permanece aqui
-        # Adicionar a lógica de distribuição e geração de relatório conforme explicado antes.
-
     st.button("Gerar Relatório", on_click=gerar_relatorio)
-
 
