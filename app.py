@@ -73,25 +73,51 @@ def ajustar_largura_colunas(worksheet):
 
 # Função para gerar relatório
 def gerar_relatorio():
-    # Ordenar processos por tópicos
     df_processos = pd.DataFrame(st.session_state["processos"])
+
+    # Distribuição entre votistas
+    num_votistas = st.session_state["num_votistas"]
+    votistas = {f"Votista {i+1}": [] for i in range(num_votistas)}
+    processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x["Total de Tópicos do Processo"], reverse=True)
+
+    for processo in processos_ordenados:
+        votista = min(votistas, key=lambda v: sum(p["Total de Tópicos do Processo"] for p in votistas[v]))
+        votistas[votista].append(processo)
+
     output = BytesIO()
 
-    # Usar openpyxl para formatação
+    # Criar workbook
     wb = Workbook()
-    ws = wb.active
-    ws.title = "Distribuição de Processos"
+    ws_processos = wb.active
+    ws_processos.title = "Processos"
 
-    # Escrever os dados no Excel
+    # Renomear colunas do DataFrame
+    df_processos.rename(columns={
+        "Número do Processo": "Número do Processo",
+        "Classe 1": "Classe",
+        "Tópicos Recurso 1": "Tópicos Recurso 1",
+        "Classe 2": "Classe",
+        "Tópicos Recurso 2": "Tópicos Recurso 2",
+        "Classe 3": "Classe",
+        "Tópicos Recurso 3": "Tópicos Recurso 3",
+        "Total de Tópicos do Processo": "Total de Tópicos do Processo"
+    }, inplace=True)
+
+    # Escrever processos no Excel
     for row in dataframe_to_rows(df_processos, index=False, header=True):
-        ws.append(row)
+        ws_processos.append(row)
 
     # Ajustar largura das colunas
-    ajustar_largura_colunas(ws)
+    ajustar_largura_colunas(ws_processos)
 
-    # Alinhamento do cabeçalho
-    for cell in ws[1]:
-        cell.alignment = Alignment(horizontal="center", vertical="center")
+    # Criar aba para distribuição dos votistas
+    ws_votistas = wb.create_sheet(title="Distribuição por Votista")
+    ws_votistas.append(["Votista", "Número do Processo", "Total de Tópicos"])
+    for votista, processos in votistas.items():
+        for processo in processos:
+            ws_votistas.append([votista, processo["Número do Processo"], processo["Total de Tópicos do Processo"]])
+
+    ajustar_largura_colunas(ws_votistas)
 
     # Salvar o Excel
     wb.save(output)
@@ -148,5 +174,4 @@ if st.session_state["processos"]:
 if st.session_state["processos"]:
     st.number_input("Número de Votistas:", min_value=1, step=1, key="num_votistas")
     st.button("Gerar Relatório", on_click=gerar_relatorio)
-
 
