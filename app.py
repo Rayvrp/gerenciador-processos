@@ -101,7 +101,19 @@ def gerar_relatorio():
     # Criar workbook
     wb = Workbook()
     ws_processos = wb.active
-    ws_processos.title = "Processos"
+    ws_processos.title = "Todos os Processos"
+
+    # Preencher a aba principal com todos os processos
+    ws_processos.append(["Número do Processo", "Classe 1", "Tópicos Recurso 1", "Classe 2", "Tópicos Recurso 2", "Classe 3", "Tópicos Recurso 3", "Total de Tópicos"])
+    for processo in st.session_state["processos"]:
+        ws_processos.append([
+            processo.get("Número do Processo", ""),
+            processo.get("Classe 1", ""), processo.get("Tópicos Recurso 1", 0),
+            processo.get("Classe 2", ""), processo.get("Tópicos Recurso 2", 0),
+            processo.get("Classe 3", ""), processo.get("Tópicos Recurso 3", 0),
+            processo.get("Total de Tópicos", 0)
+        ])
+    ajustar_largura_colunas(ws_processos)
 
     # Criar aba para cada votista
     for votista, processos in votistas.items():
@@ -161,11 +173,11 @@ prejudiciais_3 = col2.selectbox("Prejudiciais R3:", range(0, 7), key="prejudicia
 merito_3 = col3.selectbox("Tópicos Mérito R3:", range(0, 36), key="merito_3")
 
 # Botão para adicionar os dados do processo
-st.button("Adicionar Processo", on_click=adicionar_processo)
+st.button("Adicionar Processo", on_click=adicionar_processo, key="add_button")
 
 # Botão para desfazer inclusão
 if st.session_state["processos"]:
-    st.button("Desfazer Inclusão", on_click=desfazer_inclusao)
+    st.button("Desfazer Inclusão", on_click=desfazer_inclusao, key="undo_button")
 
 # Exibir processos adicionados
 if st.session_state["processos"]:
@@ -180,11 +192,5 @@ for votista in VOTISTAS:
 
 # Botão de geração do relatório
 if st.session_state["processos"]:
-    st.button("Gerar Relatório", on_click=gerar_relatorio)
-
-
-# Botão de geração do relatório
-if st.session_state["processos"]:
-    st.button("Gerar Relatório", on_click=gerar_relatorio)
-
+    st.button("Gerar Relatório", on_click=gerar_relatorio, key="generate_button")
 
