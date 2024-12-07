@@ -8,19 +8,19 @@ if "processos" not in st.session_state:
 
 # Função para resetar os campos do formulário
 def reset_campos():
-    st.session_state["numero_processo"] = ""
-    st.session_state["tipo_recurso_1"] = "Nenhum"
-    st.session_state["tipo_recurso_2"] = "Nenhum"
-    st.session_state["tipo_recurso_3"] = "Nenhum"
-    st.session_state["preliminares_1"] = 0
-    st.session_state["preliminares_2"] = 0
-    st.session_state["preliminares_3"] = 0
-    st.session_state["prejudiciais_1"] = 0
-    st.session_state["prejudiciais_2"] = 0
-    st.session_state["prejudiciais_3"] = 0
-    st.session_state["merito_1"] = 1
-    st.session_state["merito_2"] = 1
-    st.session_state["merito_3"] = 1
+    st.session_state.numero_processo = ""
+    st.session_state.tipo_recurso_1 = "Nenhum"
+    st.session_state.tipo_recurso_2 = "Nenhum"
+    st.session_state.tipo_recurso_3 = "Nenhum"
+    st.session_state.preliminares_1 = 0
+    st.session_state.preliminares_2 = 0
+    st.session_state.preliminares_3 = 0
+    st.session_state.prejudiciais_1 = 0
+    st.session_state.prejudiciais_2 = 0
+    st.session_state.prejudiciais_3 = 0
+    st.session_state.merito_1 = 1
+    st.session_state.merito_2 = 1
+    st.session_state.merito_3 = 1
 
 # Inicializar os valores na primeira execução
 if "numero_processo" not in st.session_state:
