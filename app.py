@@ -9,6 +9,9 @@ from openpyxl.styles import Alignment
 if "processos" not in st.session_state:
     st.session_state["processos"] = []
 
+# Lista de votistas
+VOTISTAS = ["Ana", "André", "Fernanda", "Luiz", "Mariana", "Mônica", "Raquel", "Rayssa", "Renata", "Novo"]
+
 # Função para resetar os campos do formulário
 def reset_campos():
     st.session_state.numero_processo = ""
@@ -81,9 +84,14 @@ def gerar_relatorio():
         st.error("Erro: A coluna 'Total de Tópicos do Processo' está ausente nos dados.")
         return
 
+    # Obter os votistas marcados
+    votistas_selecionados = [v for v in VOTISTAS if st.session_state.get(f"votista_{v}", False)]
+    if not votistas_selecionados:
+        st.error("Por favor, selecione ao menos um votista.")
+        return
+
     # Distribuição entre votistas
-    num_votistas = st.session_state["num_votistas"]
-    votistas = {f"Votista {i+1}": [] for i in range(num_votistas)}
+    votistas = {v: [] for v in votistas_selecionados}
     processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x["Total de Tópicos do Processo"], reverse=True)
 
     for processo in processos_ordenados:
@@ -176,8 +184,12 @@ if st.session_state["processos"]:
     df = pd.DataFrame(st.session_state["processos"])
     st.dataframe(df)
 
-# Número de votistas e botão de geração de relatório
+# Seleção dos votistas
+st.subheader("Selecione os Votistas")
+for votista in VOTISTAS:
+    st.checkbox(votista, key=f"votista_{votista}")
+
+# Botão de geração do relatório
 if st.session_state["processos"]:
-    st.number_input("Número de Votistas:", min_value=1, step=1, key="num_votistas")
     st.button("Gerar Relatório", on_click=gerar_relatorio)
 
