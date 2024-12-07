@@ -18,9 +18,9 @@ def reset_campos():
     st.session_state.prejudiciais_1 = 0
     st.session_state.prejudiciais_2 = 0
     st.session_state.prejudiciais_3 = 0
-    st.session_state.merito_1 = 1
-    st.session_state.merito_2 = 1
-    st.session_state.merito_3 = 1
+    st.session_state.merito_1 = 0
+    st.session_state.merito_2 = 0
+    st.session_state.merito_3 = 0
 
 # Inicializar os valores na primeira execução
 if "numero_processo" not in st.session_state:
