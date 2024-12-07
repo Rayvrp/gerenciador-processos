@@ -123,9 +123,11 @@ st.button("Adicionar Processo", on_click=adicionar_processo)
 # Exibir processos adicionados
 if st.session_state["processos"]:
     st.subheader("Processos Adicionados")
-    for i, processo in enumerate(st.session_state["processos"]):
-        st.write(processo)
-        st.button(f"Excluir Processo {processo['Número do Processo']}", key=f"excluir_{i}", on_click=excluir_processo, args=(i,))
+    df = pd.DataFrame(st.session_state["processos"])
+    df["Excluir"] = [f"Excluir {i}" for i in range(len(df))]
+    for i, row in df.iterrows():
+        st.button(row["Excluir"], key=f"excluir_{i}", on_click=excluir_processo, args=(i,))
+    st.dataframe(df.drop(columns=["Excluir"]))
 
     # Número de votistas
     st.number_input("Número de Votistas:", min_value=1, step=1, key="num_votistas")
