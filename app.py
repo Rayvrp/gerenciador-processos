@@ -32,14 +32,18 @@ def reset_campos():
 if "numero_processo" not in st.session_state:
     reset_campos()
 
+# Função para calcular a soma de tópicos
+def calcular_total_topicos():
+    return (
+        st.session_state.preliminares_1 + st.session_state.prejudiciais_1 + st.session_state.merito_1 +
+        st.session_state.preliminares_2 + st.session_state.prejudiciais_2 + st.session_state.merito_2 +
+        st.session_state.preliminares_3 + st.session_state.prejudiciais_3 + st.session_state.merito_3
+    )
+
 # Função para adicionar processo
 def adicionar_processo():
     if st.session_state.numero_processo:
-        total_topicos = (
-            st.session_state.preliminares_1 + st.session_state.prejudiciais_1 + st.session_state.merito_1 +
-            st.session_state.preliminares_2 + st.session_state.prejudiciais_2 + st.session_state.merito_2 +
-            st.session_state.preliminares_3 + st.session_state.prejudiciais_3 + st.session_state.merito_3
-        )
+        total_topicos = calcular_total_topicos()
         st.session_state["processos"].append({
             "Número do Processo": st.session_state.numero_processo,
             "Classe 1": st.session_state.tipo_recurso_1 if st.session_state.tipo_recurso_1 != "Nenhum" else "",
@@ -76,13 +80,16 @@ def ajustar_largura_colunas(worksheet):
 
 # Função para gerar relatório
 def gerar_relatorio():
-    # Criar DataFrame com os processos
-    df_processos = pd.DataFrame(st.session_state["processos"])
+    # Certificar que todos os processos têm a coluna "Total de Tópicos do Processo"
+    for processo in st.session_state["processos"]:
+        if "Total de Tópicos do Processo" not in processo:
+            processo["Total de Tópicos do Processo"] = (
+                processo.get("Tópicos Recurso 1", 0) +
+                processo.get("Tópicos Recurso 2", 0) +
+                processo.get("Tópicos Recurso 3", 0)
+            )
 
-    # Certificar que "Total de Tópicos do Processo" está correto
-    if "Total de Tópicos do Processo" not in df_processos.columns:
-        st.error("Erro: A coluna 'Total de Tópicos do Processo' está ausente nos dados.")
-        return
+    df_processos = pd.DataFrame(st.session_state["processos"])
 
     # Obter os votistas marcados
     votistas_selecionados = [v for v in VOTISTAS if st.session_state.get(f"votista_{v}", False)]
