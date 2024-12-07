@@ -73,8 +73,10 @@ def ajustar_largura_colunas(worksheet):
 
 # Função para gerar relatório
 def gerar_relatorio():
-    # Verificar se a chave existe para evitar KeyError
+    # Criar DataFrame com os processos
     df_processos = pd.DataFrame(st.session_state["processos"])
+
+    # Certificar que "Total de Tópicos do Processo" está correto
     if "Total de Tópicos do Processo" not in df_processos.columns:
         st.error("Erro: A coluna 'Total de Tópicos do Processo' está ausente nos dados.")
         return
@@ -82,7 +84,7 @@ def gerar_relatorio():
     # Distribuição entre votistas
     num_votistas = st.session_state["num_votistas"]
     votistas = {f"Votista {i+1}": [] for i in range(num_votistas)}
-    processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x.get("Total de Tópicos do Processo", 0), reverse=True)
+    processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x["Total de Tópicos do Processo"], reverse=True)
 
     for processo in processos_ordenados:
         votista = min(votistas, key=lambda v: sum(p["Total de Tópicos do Processo"] for p in votistas[v]))
@@ -178,3 +180,4 @@ if st.session_state["processos"]:
 if st.session_state["processos"]:
     st.number_input("Número de Votistas:", min_value=1, step=1, key="num_votistas")
     st.button("Gerar Relatório", on_click=gerar_relatorio)
+
