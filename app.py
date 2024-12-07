@@ -6,6 +6,18 @@ from io import BytesIO
 if "processos" not in st.session_state:
     st.session_state["processos"] = []
 
+# Inicializando os valores padrão
+if "preliminares_1" not in st.session_state:
+    st.session_state["preliminares_1"] = 0
+    st.session_state["preliminares_2"] = 0
+    st.session_state["preliminares_3"] = 0
+    st.session_state["prejudiciais_1"] = 0
+    st.session_state["prejudiciais_2"] = 0
+    st.session_state["prejudiciais_3"] = 0
+    st.session_state["merito_1"] = 1
+    st.session_state["merito_2"] = 1
+    st.session_state["merito_3"] = 1
+
 # Título do Aplicativo
 st.title("Gerenciador de Processos e Recursos")
 
@@ -20,17 +32,17 @@ st.markdown("### Tópicos por Recurso")
 
 # Seleção de tópicos para cada recurso
 col1, col2, col3 = st.columns(3)
-preliminares_1 = col1.selectbox("Preliminares R1:", range(0, 7))
-prejudiciais_1 = col2.selectbox("Prejudiciais R1:", range(0, 7))
-merito_1 = col3.selectbox("Tópicos Mérito R1:", range(1, 36))
+preliminares_1 = col1.selectbox("Preliminares R1:", range(0, 7), key="preliminares_1")
+prejudiciais_1 = col2.selectbox("Prejudiciais R1:", range(0, 7), key="prejudiciais_1")
+merito_1 = col3.selectbox("Tópicos Mérito R1:", range(1, 36), key="merito_1")
 
-preliminares_2 = col1.selectbox("Preliminares R2:", range(0, 7))
-prejudiciais_2 = col2.selectbox("Prejudiciais R2:", range(0, 7))
-merito_2 = col3.selectbox("Tópicos Mérito R2:", range(1, 36))
+preliminares_2 = col1.selectbox("Preliminares R2:", range(0, 7), key="preliminares_2")
+prejudiciais_2 = col2.selectbox("Prejudiciais R2:", range(0, 7), key="prejudiciais_2")
+merito_2 = col3.selectbox("Tópicos Mérito R2:", range(1, 36), key="merito_2")
 
-preliminares_3 = col1.selectbox("Preliminares R3:", range(0, 7))
-prejudiciais_3 = col2.selectbox("Prejudiciais R3:", range(0, 7))
-merito_3 = col3.selectbox("Tópicos Mérito R3:", range(1, 36))
+preliminares_3 = col1.selectbox("Preliminares R3:", range(0, 7), key="preliminares_3")
+prejudiciais_3 = col2.selectbox("Prejudiciais R3:", range(0, 7), key="prejudiciais_3")
+merito_3 = col3.selectbox("Tópicos Mérito R3:", range(1, 36), key="merito_3")
 
 # Botão para adicionar os dados do processo
 if st.button("Adicionar Processo"):
@@ -51,6 +63,17 @@ if st.button("Adicionar Processo"):
             "Total de Tópicos": total_topicos
         })
         st.success(f"Processo {numero_processo} adicionado com sucesso!")
+
+        # Resetar os valores dos campos
+        st.session_state["preliminares_1"] = 0
+        st.session_state["preliminares_2"] = 0
+        st.session_state["preliminares_3"] = 0
+        st.session_state["prejudiciais_1"] = 0
+        st.session_state["prejudiciais_2"] = 0
+        st.session_state["prejudiciais_3"] = 0
+        st.session_state["merito_1"] = 1
+        st.session_state["merito_2"] = 1
+        st.session_state["merito_3"] = 1
     else:
         st.error("Por favor, insira o número do processo.")
 
@@ -59,42 +82,3 @@ if st.session_state["processos"]:
     st.subheader("Processos Adicionados")
     df = pd.DataFrame(st.session_state["processos"])
     st.dataframe(df)
-
-    # Informar número de votistas
-    num_votistas = st.number_input("Número de Votistas:", min_value=1, value=1)
-
-    # Botão para gerar o relatório
-    if st.button("Gerar Relatório"):
-        # Distribuir processos por votistas
-        processos = st.session_state["processos"]
-        votistas = {f"Votista {i+1}": [] for i in range(num_votistas)}
-        processos_ordenados = sorted(processos, key=lambda x: x["Total de Tópicos"], reverse=True)
-
-        # Algoritmo para distribuição equilibrada
-        for processo in processos_ordenados:
-            votista_com_menos_topicos = min(votistas, key=lambda v: sum(p["Total de Tópicos"] for p in votistas[v]))
-            votistas[votista_com_menos_topicos].append(processo)
-
-        # Criar relatório em Excel
-        output = BytesIO()
-        writer = pd.ExcelWriter(output, engine="openpyxl")
-        df.to_excel(writer, index=False, sheet_name="Processos")
-        for votista, processos_votista in votistas.items():
-            pd.DataFrame(processos_votista).to_excel(writer, index=False, sheet_name=votista)
-        writer.save()
-        output.seek(0)
-
-        # Permitir download do relatório
-        st.download_button(
-            label="Baixar Relatório",
-            data=output,
-            file_name=f"relatorio_{pd.Timestamp.now().strftime('%Y-%m-%d')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
-        # Exibir resumo da distribuição
-        st.subheader("Resumo da Distribuição")
-        for votista, processos_votista in votistas.items():
-            total_topicos = sum(p["Total de Tópicos"] for p in processos_votista)
-            st.write(f"{votista}: {len(processos_votista)} processos, {total_topicos} tópicos.")
-
