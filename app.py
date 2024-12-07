@@ -8,6 +8,8 @@ from openpyxl.styles import Alignment
 # Inicializando os dados
 if "processos" not in st.session_state:
     st.session_state["processos"] = []
+if "relatorio_gerado" not in st.session_state:
+    st.session_state["relatorio_gerado"] = None
 
 # Lista de votistas
 VOTISTAS = ["Ana", "André", "Fernanda", "Luiz", "Mariana", "Mônica", "Raquel", "Rayssa", "Renata", "Novo"]
@@ -134,17 +136,10 @@ def gerar_relatorio():
         ws.append(["Total de Tópicos", total_topicos])
         ajustar_largura_colunas(ws)
 
-    # Salvar o Excel
+    # Salvar o Excel no estado da aplicação
     wb.save(output)
     output.seek(0)
-
-    # Botão para download do relatório
-    st.download_button(
-        label="Baixar Relatório",
-        data=output,
-        file_name="relatorio_processos.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    st.session_state["relatorio_gerado"] = output
 
 # Título do Aplicativo
 st.title("Distribuição semanal de processos")
@@ -192,5 +187,16 @@ for votista in VOTISTAS:
 
 # Botão de geração do relatório
 if st.session_state["processos"]:
-    st.button("Gerar Relatório", on_click=gerar_relatorio, key="generate_button")
+    if st.button("Gerar Relatório", key="generate_button"):
+        gerar_relatorio()
+
+# Botão de download do relatório
+if st.session_state.get("relatorio_gerado"):
+    st.download_button(
+        label="Baixar Relatório",
+        data=st.session_state["relatorio_gerado"],
+        file_name="relatorio_processos.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        key="download_button"
+    )
 
