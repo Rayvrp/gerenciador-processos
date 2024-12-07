@@ -7,7 +7,19 @@ if "processos" not in st.session_state:
     st.session_state["processos"] = []
 
 # Inicializando os valores padrão
-if "preliminares_1" not in st.session_state:
+def inicializar_campos():
+    if "preliminares_1" not in st.session_state:
+        st.session_state["preliminares_1"] = 0
+        st.session_state["preliminares_2"] = 0
+        st.session_state["preliminares_3"] = 0
+        st.session_state["prejudiciais_1"] = 0
+        st.session_state["prejudiciais_2"] = 0
+        st.session_state["prejudiciais_3"] = 0
+        st.session_state["merito_1"] = 1
+        st.session_state["merito_2"] = 1
+        st.session_state["merito_3"] = 1
+
+def reset_campos():
     st.session_state["preliminares_1"] = 0
     st.session_state["preliminares_2"] = 0
     st.session_state["preliminares_3"] = 0
@@ -17,6 +29,9 @@ if "preliminares_1" not in st.session_state:
     st.session_state["merito_1"] = 1
     st.session_state["merito_2"] = 1
     st.session_state["merito_3"] = 1
+
+# Inicializar os valores na primeira execução
+inicializar_campos()
 
 # Título do Aplicativo
 st.title("Gerenciador de Processos e Recursos")
@@ -63,17 +78,7 @@ if st.button("Adicionar Processo"):
             "Total de Tópicos": total_topicos
         })
         st.success(f"Processo {numero_processo} adicionado com sucesso!")
-
-        # Resetar os valores dos campos
-        st.session_state["preliminares_1"] = 0
-        st.session_state["preliminares_2"] = 0
-        st.session_state["preliminares_3"] = 0
-        st.session_state["prejudiciais_1"] = 0
-        st.session_state["prejudiciais_2"] = 0
-        st.session_state["prejudiciais_3"] = 0
-        st.session_state["merito_1"] = 1
-        st.session_state["merito_2"] = 1
-        st.session_state["merito_3"] = 1
+        reset_campos()
     else:
         st.error("Por favor, insira o número do processo.")
 
