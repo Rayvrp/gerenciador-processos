@@ -104,7 +104,7 @@ if st.session_state["processos"]:
         pd.DataFrame(st.session_state["processos"]).to_excel(writer, index=False, sheet_name="Processos")
         for votista, processos_votista in votistas.items():
             pd.DataFrame(processos_votista).to_excel(writer, index=False, sheet_name=votista)
-        writer.save()
+        writer.close()
         output.seek(0)
 
         # Botão para download do relatório
@@ -117,4 +117,5 @@ if st.session_state["processos"]:
         st.success("Relatório gerado com sucesso!")
 
     st.button("Gerar Relatório", on_click=gerar_relatorio)
+
 
