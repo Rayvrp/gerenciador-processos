@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 from io import BytesIO
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.styles import Alignment
 
 # Inicializando os dados
 if "processos" not in st.session_state:
@@ -36,13 +39,13 @@ def adicionar_processo():
         )
         st.session_state["processos"].append({
             "Número do Processo": st.session_state.numero_processo,
-            "Recurso 1": st.session_state.tipo_recurso_1 if st.session_state.tipo_recurso_1 != "Nenhum" else "",
-            "Tópicos R1": st.session_state.preliminares_1 + st.session_state.prejudiciais_1 + st.session_state.merito_1,
-            "Recurso 2": st.session_state.tipo_recurso_2 if st.session_state.tipo_recurso_2 != "Nenhum" else "",
-            "Tópicos R2": st.session_state.preliminares_2 + st.session_state.prejudiciais_2 + st.session_state.merito_2,
-            "Recurso 3": st.session_state.tipo_recurso_3 if st.session_state.tipo_recurso_3 != "Nenhum" else "",
-            "Tópicos R3": st.session_state.preliminares_3 + st.session_state.prejudiciais_3 + st.session_state.merito_3,
-            "Total de Tópicos": total_topicos
+            "Classe 1": st.session_state.tipo_recurso_1 if st.session_state.tipo_recurso_1 != "Nenhum" else "",
+            "Tópicos Recurso 1": st.session_state.preliminares_1 + st.session_state.prejudiciais_1 + st.session_state.merito_1,
+            "Classe 2": st.session_state.tipo_recurso_2 if st.session_state.tipo_recurso_2 != "Nenhum" else "",
+            "Tópicos Recurso 2": st.session_state.preliminares_2 + st.session_state.prejudiciais_2 + st.session_state.merito_2,
+            "Classe 3": st.session_state.tipo_recurso_3 if st.session_state.tipo_recurso_3 != "Nenhum" else "",
+            "Tópicos Recurso 3": st.session_state.preliminares_3 + st.session_state.prejudiciais_3 + st.session_state.merito_3,
+            "Total de Tópicos do Processo": total_topicos
         })
         st.success(f"Processo {st.session_state.numero_processo} adicionado com sucesso!")
         reset_campos()
@@ -55,31 +58,43 @@ def desfazer_inclusao():
         st.session_state["processos"].pop()
         st.success("Último processo removido com sucesso!")
 
+# Função para ajustar largura das colunas no Excel
+def ajustar_largura_colunas(worksheet):
+    for column_cells in worksheet.columns:
+        max_length = 0
+        col_letter = column_cells[0].column_letter  # Get the column name
+        for cell in column_cells:
+            try:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+            except Exception:
+                pass
+        worksheet.column_dimensions[col_letter].width = max_length + 2
+
 # Função para gerar relatório
 def gerar_relatorio():
     # Ordenar processos por tópicos
-    processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x["Total de Tópicos"], reverse=True)
-    num_votistas = st.session_state["num_votistas"]
-    votistas = {f"Votista {i+1}": [] for i in range(num_votistas)}
-
-    # Distribuição equitativa
-    for processo in processos_ordenados:
-        votista = min(votistas, key=lambda v: sum(p["Total de Tópicos"] for p in votistas[v]))
-        votistas[votista].append(processo)
-
-    # Exibir resumo da distribuição
-    st.subheader("Resumo da Distribuição")
-    for votista, processos_votista in votistas.items():
-        total_topicos = sum(p["Total de Tópicos"] for p in processos_votista)
-        st.write(f"{votista}: {len(processos_votista)} processos, {total_topicos} tópicos.")
-
-    # Gerar relatório em Excel
+    df_processos = pd.DataFrame(st.session_state["processos"])
     output = BytesIO()
-    writer = pd.ExcelWriter(output, engine="openpyxl")
-    pd.DataFrame(st.session_state["processos"]).to_excel(writer, index=False, sheet_name="Processos")
-    for votista, processos_votista in votistas.items():
-        pd.DataFrame(processos_votista).to_excel(writer, index=False, sheet_name=votista)
-    writer.close()
+
+    # Usar openpyxl para formatação
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Distribuição de Processos"
+
+    # Escrever os dados no Excel
+    for row in dataframe_to_rows(df_processos, index=False, header=True):
+        ws.append(row)
+
+    # Ajustar largura das colunas
+    ajustar_largura_colunas(ws)
+
+    # Alinhamento do cabeçalho
+    for cell in ws[1]:
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    # Salvar o Excel
+    wb.save(output)
     output.seek(0)
 
     # Botão para download do relatório
@@ -133,4 +148,5 @@ if st.session_state["processos"]:
 if st.session_state["processos"]:
     st.number_input("Número de Votistas:", min_value=1, step=1, key="num_votistas")
     st.button("Gerar Relatório", on_click=gerar_relatorio)
+
 
