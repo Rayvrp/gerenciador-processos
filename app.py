@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from io import BytesIO
 
 # Inicializando os dados
 if "processos" not in st.session_state:
@@ -7,19 +8,19 @@ if "processos" not in st.session_state:
 
 # Função para resetar os campos do formulário
 def reset_campos():
-    st.session_state["numero_processo"] = ""
-    st.session_state["tipo_recurso_1"] = "Nenhum"
-    st.session_state["tipo_recurso_2"] = "Nenhum"
-    st.session_state["tipo_recurso_3"] = "Nenhum"
-    st.session_state["preliminares_1"] = 0
-    st.session_state["preliminares_2"] = 0
-    st.session_state["preliminares_3"] = 0
-    st.session_state["prejudiciais_1"] = 0
-    st.session_state["prejudiciais_2"] = 0
-    st.session_state["prejudiciais_3"] = 0
-    st.session_state["merito_1"] = 0
-    st.session_state["merito_2"] = 0
-    st.session_state["merito_3"] = 0
+    st.session_state.numero_processo = ""
+    st.session_state.tipo_recurso_1 = "Nenhum"
+    st.session_state.tipo_recurso_2 = "Nenhum"
+    st.session_state.tipo_recurso_3 = "Nenhum"
+    st.session_state.preliminares_1 = 0
+    st.session_state.preliminares_2 = 0
+    st.session_state.preliminares_3 = 0
+    st.session_state.prejudiciais_1 = 0
+    st.session_state.prejudiciais_2 = 0
+    st.session_state.prejudiciais_3 = 0
+    st.session_state.merito_1 = 0
+    st.session_state.merito_2 = 0
+    st.session_state.merito_3 = 0
 
 # Inicializar os valores na primeira execução
 if "numero_processo" not in st.session_state:
@@ -82,4 +83,38 @@ if st.session_state["processos"]:
     st.subheader("Processos Adicionados")
     df = pd.DataFrame(st.session_state["processos"])
     st.dataframe(df)
+
+    # Número de votistas
+    num_votistas = st.number_input("Número de Votistas:", min_value=1, step=1, key="num_votistas")
+
+    # Botão para gerar relatório
+    def gerar_relatorio():
+        # Ordenar processos por tópicos
+        processos_ordenados = sorted(st.session_state["processos"], key=lambda x: x["Total de Tópicos"], reverse=True)
+        votistas = {f"Votista {i+1}": [] for i in range(num_votistas)}
+
+        # Distribuição equitativa
+        for processo in processos_ordenados:
+            votista = min(votistas, key=lambda v: sum(p["Total de Tópicos"] for p in votistas[v]))
+            votistas[votista].append(processo)
+
+        # Gerar relatório em Excel
+        output = BytesIO()
+        writer = pd.ExcelWriter(output, engine="openpyxl")
+        pd.DataFrame(st.session_state["processos"]).to_excel(writer, index=False, sheet_name="Processos")
+        for votista, processos_votista in votistas.items():
+            pd.DataFrame(processos_votista).to_excel(writer, index=False, sheet_name=votista)
+        writer.save()
+        output.seek(0)
+
+        # Botão para download do relatório
+        st.download_button(
+            label="Baixar Relatório",
+            data=output,
+            file_name="relatorio_processos.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        st.success("Relatório gerado com sucesso!")
+
+    st.button("Gerar Relatório", on_click=gerar_relatorio)
 
