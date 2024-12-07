@@ -192,4 +192,3 @@ for votista in VOTISTAS:
 # Botão de geração do relatório
 if st.session_state["processos"]:
     st.button("Gerar Relatório", on_click=gerar_relatorio)
-
