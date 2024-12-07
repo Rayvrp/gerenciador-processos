@@ -6,20 +6,12 @@ from io import BytesIO
 if "processos" not in st.session_state:
     st.session_state["processos"] = []
 
-# Inicializando os valores padrão
-def inicializar_campos():
-    if "preliminares_1" not in st.session_state:
-        st.session_state["preliminares_1"] = 0
-        st.session_state["preliminares_2"] = 0
-        st.session_state["preliminares_3"] = 0
-        st.session_state["prejudiciais_1"] = 0
-        st.session_state["prejudiciais_2"] = 0
-        st.session_state["prejudiciais_3"] = 0
-        st.session_state["merito_1"] = 1
-        st.session_state["merito_2"] = 1
-        st.session_state["merito_3"] = 1
-
+# Função para resetar os campos do formulário
 def reset_campos():
+    st.session_state["numero_processo"] = ""
+    st.session_state["tipo_recurso_1"] = "Nenhum"
+    st.session_state["tipo_recurso_2"] = "Nenhum"
+    st.session_state["tipo_recurso_3"] = "Nenhum"
     st.session_state["preliminares_1"] = 0
     st.session_state["preliminares_2"] = 0
     st.session_state["preliminares_3"] = 0
@@ -31,17 +23,18 @@ def reset_campos():
     st.session_state["merito_3"] = 1
 
 # Inicializar os valores na primeira execução
-inicializar_campos()
+if "numero_processo" not in st.session_state:
+    reset_campos()
 
 # Título do Aplicativo
 st.title("Gerenciador de Processos e Recursos")
 
 # Formulário para adicionar dados do processo
 st.subheader("Adicionar Dados do Processo")
-numero_processo = st.text_input("Número do Processo:")
-tipo_recurso_1 = st.selectbox("Recurso 1:", ["Nenhum", "Recurso Ordinário", "Agravo de Instrumento", "Agravo de Petição"])
-tipo_recurso_2 = st.selectbox("Recurso 2:", ["Nenhum", "Recurso Ordinário", "Agravo de Instrumento", "Agravo de Petição"])
-tipo_recurso_3 = st.selectbox("Recurso 3:", ["Nenhum", "Recurso Ordinário", "Agravo de Instrumento", "Agravo de Petição"])
+numero_processo = st.text_input("Número do Processo:", key="numero_processo")
+tipo_recurso_1 = st.selectbox("Recurso 1:", ["Nenhum", "Recurso Ordinário", "Agravo de Instrumento", "Agravo de Petição"], key="tipo_recurso_1")
+tipo_recurso_2 = st.selectbox("Recurso 2:", ["Nenhum", "Recurso Ordinário", "Agravo de Instrumento", "Agravo de Petição"], key="tipo_recurso_2")
+tipo_recurso_3 = st.selectbox("Recurso 3:", ["Nenhum", "Recurso Ordinário", "Agravo de Instrumento", "Agravo de Petição"], key="tipo_recurso_3")
 
 st.markdown("### Tópicos por Recurso")
 
