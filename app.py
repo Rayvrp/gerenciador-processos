@@ -3,6 +3,24 @@ import pandas as pd
 from io import BytesIO
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
+import threading
+import time
+import requests
+
+# Pingador automático para manter o app ativo
+def manter_app_ativo():
+    url = "https://gerenciador-proceapps-srpehvgzlawjxbfhfe7adk.streamlit.app/"  # Substitua pela URL do seu app
+    while True:
+        try:
+            response = requests.get(url)
+            print(f"Ping enviado: {response.status_code}")
+        except Exception as e:
+            print(f"Erro ao enviar ping: {e}")
+        time.sleep(300)  # Pingar a cada 5 minutos
+
+# Iniciar o pingador em uma thread separada
+thread = threading.Thread(target=manter_app_ativo, daemon=True)
+thread.start()
 
 # Inicializando os dados
 if "processos" not in st.session_state:
